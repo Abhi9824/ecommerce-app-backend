@@ -20,14 +20,9 @@ const extractUserId = (decodedToken) => {
 
 const authVerify = (req, res, next) => {
   const token = req.headers["authorization"];
-  console.log("Token received:", token);
   try {
     const decodedToken = verifyToken(token);
     const userId = extractUserId(decodedToken);
-    console.log("decoded TOken", decodedToken);
-
-    console.log("Decoded userId:", userId);
-
     req.user = { userId };
     return next();
   } catch (error) {
