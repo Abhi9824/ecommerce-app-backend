@@ -27,7 +27,6 @@ const addToWishlist = async (userId, productId) => {
       if (!product) {
         throw new Error("Product not found");
       }
-      console.log("Jo productId", productId);
       const isProductInWishlist = user.wishlist.find(
         (item) => item._id.toString() === productId
       );

@@ -15,7 +15,6 @@ const getAllCart = async (userId) => {
       throw new Error("User not found");
     } else {
       const products = await Cart.find().populate("productId");
-      console.log(products);
       return user.cart;
     }
   } catch (error) {
@@ -64,7 +63,6 @@ const addToCart = async (userId, { productId, quantity = 1, selectedSize }) => {
       await newCartItem.save();
       user.cart.push(newCartItem._id.toHexString());
       await user.save();
-      console.log("Item added to cart cart Successfully", newCartItem);
       return newCartItem.populate("productId");
     }
   } catch (error) {
@@ -102,7 +100,6 @@ const updateCart = async (userId, cartItemId, { quantity, selectedSize }) => {
     if (!user) {
       throw new Error("User not found");
     } else {
-      console.log(`Updating cart item ${cartItemId} with quantity ${quantity}`);
       if (quantity < 1) {
         throw new Error("Quantity must be at least 1");
       }

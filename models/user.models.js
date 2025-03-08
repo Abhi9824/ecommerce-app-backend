@@ -41,6 +41,7 @@ const eUserSchema = new mongoose.Schema(
         ref: "ShoesProducts",
       },
     ],
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
   },
   { timestamps: true }
 );

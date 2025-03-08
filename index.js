@@ -3,26 +3,19 @@ require("dotenv").config();
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
-
 const app = express();
-
 app.use(express.json());
-
 const cors = require("cors");
 const corsOptions = {
   origin: "*",
   credentials: true,
   optionSuccessStatus: 200,
 };
-
 app.use(cors(corsOptions));
-
 const { initializeDatabase } = require("./db/db.connection");
 const { ShoesProducts } = require("./models/products.model");
 const { eUser } = require("./models/user.models");
-
 initializeDatabase();
-
 //utils
 const {
   createProduct,
@@ -46,6 +39,11 @@ const {
   login,
   signUp,
 } = require("./utils/user.functions");
+const {
+  getUserOrders,
+  placeOrder,
+  deleteOrder,
+} = require("./utils/order.function");
 
 const { authVerify } = require("./middleware/auth.verify.middleware");
 
@@ -125,9 +123,7 @@ app.delete("/products/:productId", async (req, res) => {
 //get products by categoryGender
 app.get("/products/category/:categoryGender", async (req, res) => {
   try {
-    console.log("Received categoryGender:", req.params.categoryGender);
-
-    const categoryProducts = await getProductByCategoryGender(
+      const categoryProducts = await getProductByCategoryGender(
       req.params.categoryGender
     );
     res.status(200).json(categoryProducts);
@@ -141,7 +137,6 @@ app.get("/products/category/:categoryGender", async (req, res) => {
 //get products by BrandName
 
 app.get("/products/brand/:brandName", async (req, res) => {
-  console.log("brand:", req.params.brandName);
   try {
     const allProducts = await getProductByBrandName(req.params.brandName);
     res.json(allProducts);
@@ -231,9 +226,7 @@ app.get("/user/:userId/cart", authVerify, async (req, res) => {
 app.post("/user/:userId/cart", authVerify, async (req, res) => {
   const { userId } = req.user;
   const { productId, quantity, selectedSize } = req.body;
-  console.log(req.body);
-
-  try {
+    try {
     const newCartItem = await addToCart(userId, {
       productId,
       quantity,
@@ -264,7 +257,6 @@ app.put("/user/:userId/cart/:id", authVerify, async (req, res) => {
 // Route to remove an item from the cart
 app.delete("/user/:userId/cart/:id", authVerify, async (req, res) => {
   const { userId, id } = req.params;
-  console.log(id);
   try {
     const removedItem = await removeFromCart(userId, id);
     res.status(200).json({ message: "Item removed from cart", removedItem });
@@ -284,7 +276,6 @@ const {
 
 //add Address
 app.post("/user/:userId/addresses", authVerify, async (req, res) => {
-  console.log("Data received in backend:", req.body);
   const { userId } = req.params;
   const addressData = req.body;
 
@@ -344,9 +335,53 @@ app.get("/user/:userId/addresses", authVerify, async (req, res) => {
       .json({ message: "Error retrieving addresses", error: error.message });
   }
 });
+// Route to get user orders
+app.get("/user/getOrders", authVerify, async (req, res) => {
+  try {
+    const orders = await getUserOrders(req); // Only pass req, not res
+
+    if (orders.length > 0) {
+      res.status(200).json({ orders });
+    } else {
+      res.status(404).json({ message: "No orders found" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
+});
+
+//add orders
+app.post("/user/placeOrder", authVerify, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    await placeOrder(req, res);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Issue", error: error.message });
+  }
+});
+
+//delete the orders
+app.delete("/user/deleteOrder/:orderId", authVerify, async (req, res) => {
+  try {
+    const result = await deleteOrder(req);
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ message: "Order deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Order not found or already deleted" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
+});
 
 //users routes
-
 app.get("/users", async (req, res) => {
   try {
     const users = await getAllUsers();

@@ -30,7 +30,7 @@ const login = async (user, password) => {
       throw new Error("Incorrect Password");
     }
   } catch (error) {
-    console.log("Login Failed.Incorrect Details");
+    throw new Error("Login Failed.Incorrect Details");
   }
 };
 

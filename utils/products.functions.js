@@ -58,8 +58,6 @@ const getProductByCategoryGender = async (categoryGender) => {
     const normalizedCategoryGender = categoryGender.replace(/^(.)/, (match) =>
       match.toUpperCase()
     );
-
-    console.log(normalizedCategoryGender);
     const product = await ShoesProducts.find({
       gender: normalizedCategoryGender,
     });
