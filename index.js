@@ -8,12 +8,24 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 app.use(express.json());
 const cors = require("cors");
+const allowedOrigins = [
+  "http://localhost:3001",
+  "https://ecommerce-app-frontend-phi.vercel.app",
+];
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
+
 const { initializeDatabase } = require("./db/db.connection");
 const { ShoesProducts } = require("./models/products.model");
 const { eUser } = require("./models/user.models");
