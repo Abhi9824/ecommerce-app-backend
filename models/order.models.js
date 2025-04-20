@@ -48,6 +48,11 @@ const orderSchema = new mongoose.Schema(
       ref: "AddressDetails",
       // required: true,
     },
+    paymentInfo: {
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      razorpaySignature: String,
+    },
   },
   { timestamps: true }
 );

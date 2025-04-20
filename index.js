@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
+const razorpayInstance = require("./config/razorpay.config");
 const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
 app.use(express.json());
@@ -123,7 +125,7 @@ app.delete("/products/:productId", async (req, res) => {
 //get products by categoryGender
 app.get("/products/category/:categoryGender", async (req, res) => {
   try {
-      const categoryProducts = await getProductByCategoryGender(
+    const categoryProducts = await getProductByCategoryGender(
       req.params.categoryGender
     );
     res.status(200).json(categoryProducts);
@@ -226,7 +228,7 @@ app.get("/user/:userId/cart", authVerify, async (req, res) => {
 app.post("/user/:userId/cart", authVerify, async (req, res) => {
   const { userId } = req.user;
   const { productId, quantity, selectedSize } = req.body;
-    try {
+  try {
     const newCartItem = await addToCart(userId, {
       productId,
       quantity,
@@ -338,7 +340,7 @@ app.get("/user/:userId/addresses", authVerify, async (req, res) => {
 // Route to get user orders
 app.get("/user/getOrders", authVerify, async (req, res) => {
   try {
-    const orders = await getUserOrders(req); // Only pass req, not res
+    const orders = await getUserOrders(req); 
 
     if (orders.length > 0) {
       res.status(200).json({ orders });
@@ -352,17 +354,48 @@ app.get("/user/getOrders", authVerify, async (req, res) => {
   }
 });
 
-//add orders
-app.post("/user/placeOrder", authVerify, async (req, res) => {
+app.post("/user/createRazorpayOrder", authVerify, async (req, res) => {
   try {
-    const { userId } = req.user;
-    await placeOrder(req, res);
+    const { amount } = req.body;
+    const options = {
+      amount: amount * 100,
+      currency: "INR",
+      receipt: "receipt_order_" + Math.random(),
+    };
+
+    const order = await razorpayInstance.orders.create(options);
+    res.status(200).json({ razorpayOrder: order });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Internal Server Issue", error: error.message });
+      .json({ message: "Razorpay order failed", error: error.message });
   }
 });
+
+app.post("/user/verifyRazorpay", async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature === razorpay_signature) {
+      return res.status(200).json({ message: "Payment verified successfully" });
+    } else {
+      return res.status(400).json({ message: "Invalid payment signature" });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Verification error", error: error.message });
+  }
+});
+
+// Place order after verification
+app.post("/user/placeOrder", authVerify, placeOrder);
 
 //delete the orders
 app.delete("/user/deleteOrder/:orderId", authVerify, async (req, res) => {

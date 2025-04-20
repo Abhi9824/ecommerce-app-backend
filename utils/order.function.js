@@ -6,7 +6,14 @@ const placeOrder = async (req, res) => {
     const userId = req.user.userId;
     const deliveryAddress = req.body.deliveryAddress;
 
-    // Find the user's cart items
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body.paymentInfo;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res
+        .status(400)
+        .json({ message: "Incomplete Razorpay payment data" });
+    }
     const user = await eUser.findById(userId).populate("cart");
     if (!user || user.cart.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
@@ -29,15 +36,21 @@ const placeOrder = async (req, res) => {
       items: orderItems,
       totalAmount,
       deliveryAddress,
+      paymentInfo: {
+        razorpayOrderId: razorpay_order_id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpaySignature: razorpay_signature,
+      },
     });
 
-    // Clearing the user's cart
     user.cart = [];
     await user.save();
-
+    const populatedOrder = await Order.findById(newOrder._id).populate(
+      "deliveryAddress"
+    );
     return res
       .status(201)
-      .json({ message: "Order placed successfully", newOrder });
+      .json({ message: "Order placed successfully", newOrder: populatedOrder });
   } catch (error) {
     return res
       .status(500)
@@ -45,7 +58,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-// Function to get user orders
 const getUserOrders = async (req) => {
   try {
     const userId = req.user.userId;
@@ -53,7 +65,7 @@ const getUserOrders = async (req) => {
       .populate({
         path: "items.productId",
         model: "ShoesProducts",
-        select: "title price images brand", // Ensure 'title' is selected
+        select: "title price images brand",
       })
       .populate("deliveryAddress");
 
