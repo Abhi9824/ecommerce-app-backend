@@ -9,9 +9,12 @@ const app = express();
 app.use(express.json());
 const cors = require("cors");
 const corsOptions = {
-  origin: "*",
+  origin: [
+    "http://localhost:3000",
+    "https://ecommerce-app-frontend-phi.vercel.app",
+  ],
   credentials: true,
-  optionSuccessStatus: 200,
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 const { initializeDatabase } = require("./db/db.connection");
@@ -50,7 +53,7 @@ const {
 const { authVerify } = require("./middleware/auth.verify.middleware");
 
 app.get("/", async (req, res) => {
-  res.send(`HelLo Guys`);
+  res.send(`Welcome To Alcroz Shoping Platform`);
 });
 
 //products Routes
@@ -340,7 +343,7 @@ app.get("/user/:userId/addresses", authVerify, async (req, res) => {
 // Route to get user orders
 app.get("/user/getOrders", authVerify, async (req, res) => {
   try {
-    const orders = await getUserOrders(req); 
+    const orders = await getUserOrders(req);
 
     if (orders.length > 0) {
       res.status(200).json({ orders });
