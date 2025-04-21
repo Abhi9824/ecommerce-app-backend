@@ -67,7 +67,12 @@ const getUserOrders = async (req) => {
         model: "ShoesProducts",
         select: "title price images brand",
       })
-      .populate("deliveryAddress");
+      .populate("deliveryAddress")
+      .populate({
+        path: "userId",
+        model: "eUser",
+        select: "name email",
+      });
 
     return userOrders;
   } catch (error) {

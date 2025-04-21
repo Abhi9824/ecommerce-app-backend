@@ -375,7 +375,7 @@ app.post("/user/createRazorpayOrder", authVerify, async (req, res) => {
     const { amount } = req.body;
     const options = {
       amount: amount * 100,
-      currency: "USD",
+      currency: "INR",
       receipt: "receipt_order_" + Math.random(),
     };
 

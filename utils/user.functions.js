@@ -17,7 +17,7 @@ const signUp = async (userDetails) => {
     await user.save();
     return user;
   } catch (error) {
-    console.log("Error in Signing Up", error);
+    console.error("Error in Signing Up", error);
   }
 };
 
@@ -39,7 +39,7 @@ const getUserById = async (userId) => {
     const user = await eUser.findById(userId).populate("cart");
     return user.save();
   } catch (error) {
-    console.log("No User Exist");
+    console.error("No User Exist");
   }
 };
 
@@ -57,7 +57,7 @@ const getAllUsers = async () => {
     const allUsers = await eUser.find();
     return allUsers;
   } catch (error) {
-    console.log("Error getting all users", error);
+    console.error("Error getting all users", error);
   }
 };
 

@@ -40,7 +40,6 @@ const updateProductDetails = async (productId, productDetails) => {
 
     return updateProduct;
   } catch (error) {
-    console.log("Error fetching product by ID", error);
     throw error;
   }
 };
