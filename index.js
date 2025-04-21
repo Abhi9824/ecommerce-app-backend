@@ -15,7 +15,11 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -371,7 +375,7 @@ app.post("/user/createRazorpayOrder", authVerify, async (req, res) => {
     const { amount } = req.body;
     const options = {
       amount: amount * 100,
-      currency: "INR",
+      currency: "USD",
       receipt: "receipt_order_" + Math.random(),
     };
 
